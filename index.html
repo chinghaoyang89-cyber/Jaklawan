@@ -307,6 +307,129 @@
             }
         }
 
+        /* ===== MODAL PILIHAN HADIAH MISTERI ===== */
+        .modal-pilihan-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 110;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            padding: 1rem;
+        }
+
+        .modal-pilihan-overlay.aktif {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-pilihan-kotak {
+            background: #fef7e9;
+            padding: 2rem;
+            border-radius: 3rem 3rem 2.5rem 2.5rem;
+            text-align: center;
+            width: 100%;
+            max-width: 620px;
+            border: 6px solid #f5c542;
+            box-shadow: 0 30px 50px -20px #1e2d1e, 0 0 0 4px #fae073 inset;
+            transform: scale(0.9);
+            animation: pop-in 0.3s forwards;
+            position: relative;
+        }
+
+        .modal-pilihan-kotak h2 {
+            font-size: clamp(1.5rem, 5vw, 2.2rem);
+            font-weight: 800;
+            color: #d4a017;
+            text-shadow: 2px 3px 0 #b57c1a;
+            margin-bottom: 0.6rem;
+        }
+
+        .modal-pilihan-kotak p {
+            font-size: clamp(0.9rem, 3vw, 1.05rem);
+            color: #2d5a2d;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .modal-pilihan-butang {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .modal-pilihan-btn {
+            flex: 1 1 220px;
+            min-height: 64px;
+            background: #facc6f;
+            border: 3px solid #fce39c;
+            color: #1d4d1d;
+            font-size: clamp(1rem, 3.5vw, 1.15rem);
+            font-weight: 700;
+            padding: 0.8rem 1rem;
+            border-radius: 24px;
+            box-shadow: 0 7px 0 #9e772e, 0 5px 15px #a48b49;
+            cursor: pointer;
+            transition: 0.08s linear;
+        }
+
+        .modal-pilihan-btn:hover {
+            background: #ffe29a;
+        }
+
+        .modal-pilihan-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 2px 0 #9e772e;
+        }
+
+        .modal-pilihan-tutup {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 3px solid #b48c2c;
+            background: #ffe3a3;
+            color: #5d3b1a;
+            font-size: 1.8rem;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-pilihan-tutup:hover {
+            background: #f5c56b;
+        }
+
+        @media (max-width: 450px) {
+            .modal-pilihan-kotak {
+                padding: 2.5rem 1rem 1.5rem;
+                border-radius: 2rem;
+            }
+
+            .modal-pilihan-butang {
+                flex-direction: column;
+            }
+
+            .modal-pilihan-btn {
+                flex-basis: auto;
+                width: 100%;
+            }
+        }
+
         /* ===== MODAL TAHNIAH ===== */
         .modal-overlay {
             position: fixed;
@@ -426,6 +549,19 @@
         <div class="kad-row row-atas" id="rowAtas"></div>
         <div class="kad-row row-bawah" id="rowBawah"></div>
 
+        <!-- MODAL PILIHAN HADIAH MISTERI -->
+        <div class="modal-pilihan-overlay" id="modalPilihanHadiah">
+            <div class="modal-pilihan-kotak">
+                <button class="modal-pilihan-tutup" id="modalPilihanTutup" aria-label="Tutup">&times;</button>
+                <h2>🎁 HADIAH MISTERI</h2>
+                <p>Sila pilih salah satu pilihan di bawah.</p>
+                <div class="modal-pilihan-butang">
+                    <button class="modal-pilihan-btn" id="borangMaklumBalasBtn">📝 Borang Maklum Balas</button>
+                    <button class="modal-pilihan-btn" id="hadiahMisteriBtn">🎁 Hadiah Misteri</button>
+                </div>
+            </div>
+        </div>
+
         <!-- MODAL TAHNIAH -->
         <div class="modal-overlay" id="modalTahniah">
             <div class="modal-kotak">
@@ -458,10 +594,13 @@
             { no: 5, tajuk: 'Hadiah Misteri', desc: '???', emoji: '🎁', url: 'https://docs.google.com/forms/d/e/1FAIpQLSer8P35MOimo2NV3TsoRhBbhVY8jZ_xsRKWvhphkta1beY3XQ/viewform?usp=header' } // Tajuk dan link baharu
         ];
 
+        const pautanMaklumBalas = 'https://docs.google.com/forms/d/e/1FAIpQLSdRaBRFS7vZwlw7u7eKYZVXZ0LW_wMHS3lmRErWO07W6k30pw/viewform?usp=header';
+
         // State
         let selesai = 0;           // 0 hingga 5
         let aktifIndex = 0;         // misi yang sedang dipaparkan (0-4)
         let tunjukModal = false;    // menjadi true apabila baru capai 5
+        let sedangMaklumBalas = false; // borang maklum balas tidak menamatkan misi hadiah
 
         // Elemen DOM
         const homeView = document.getElementById('homeView');
@@ -474,6 +613,10 @@
         const modalTahniah = document.getElementById('modalTahniah');
         const modalClose = document.getElementById('modalClose');
         const modalMainSemula = document.getElementById('modalMainSemula');
+        const modalPilihanHadiah = document.getElementById('modalPilihanHadiah');
+        const modalPilihanTutup = document.getElementById('modalPilihanTutup');
+        const borangMaklumBalasBtn = document.getElementById('borangMaklumBalasBtn');
+        const hadiahMisteriBtn = document.getElementById('hadiahMisteriBtn');
 
         // --- Fungsi simpan/muat localStorage ---
         function simpan() {
@@ -525,7 +668,11 @@
                 kad.addEventListener('click', (e) => {
                     const index = parseInt(kad.dataset.index);
                     if (index <= selesai) {
-                        bukaMisi(index);
+                        if (index === 4) {
+                            modalPilihanHadiah.classList.add('aktif');
+                        } else {
+                            bukaMisi(index);
+                        }
                     }
                 });
 
@@ -550,6 +697,15 @@
 
         // --- Tutup component dan tandai selesai jika perlu ---
         function tutupMisiDanTandai() {
+            // Kembali daripada Borang Maklum Balas tidak menandakan misi selesai.
+            if (sedangMaklumBalas) {
+                sedangMaklumBalas = false;
+                componentView.classList.remove('aktif');
+                homeView.classList.remove('sembunyi');
+                simpan();
+                return;
+            }
+
             let perluRender = false;
             const sebelum = selesai;
             if (selesai < 5 && aktifIndex === selesai) {
@@ -594,6 +750,7 @@
         function resetProgress() {
             selesai = 0;
             aktifIndex = 0;
+            sedangMaklumBalas = false;
             componentView.classList.remove('aktif');
             homeView.classList.remove('sembunyi');
             modalTahniah.classList.remove('aktif');
@@ -608,6 +765,31 @@
         // --- Event listeners ---
         kembaliBtn.addEventListener('click', tutupMisiDanTandai);
         resetBtn.addEventListener('click', resetProgress);
+
+        borangMaklumBalasBtn.addEventListener('click', () => {
+            modalPilihanHadiah.classList.remove('aktif');
+            sedangMaklumBalas = true;
+            componentIframe.src = pautanMaklumBalas;
+            homeView.classList.add('sembunyi');
+            componentView.classList.add('aktif');
+            simpan();
+        });
+
+        hadiahMisteriBtn.addEventListener('click', () => {
+            modalPilihanHadiah.classList.remove('aktif');
+            sedangMaklumBalas = false;
+            bukaMisi(4);
+        });
+
+        modalPilihanTutup.addEventListener('click', () => {
+            modalPilihanHadiah.classList.remove('aktif');
+        });
+
+        modalPilihanHadiah.addEventListener('click', (e) => {
+            if (e.target === modalPilihanHadiah) {
+                modalPilihanHadiah.classList.remove('aktif');
+            }
+        });
         modalClose.addEventListener('click', () => {
             modalTahniah.classList.remove('aktif');
         });
